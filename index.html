@@ -1,0 +1,751 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>광산빌딩 출퇴근부</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<style>
+/* 레이아웃: 표지 → 입력(연·월·이름·시간) → 출근부/통계 탭. 관공서 서식 느낌의 얇은 괘선 + 남색 잉크 */
+:root{
+  --bg:#f3f4f1; --paper:#ffffff; --fg:#1d2230; --muted:#667085; --line:#c9cdd6; --line2:#e4e6ea;
+  --accent:#1f3a6e; --accent-fg:#ffffff; --weekend:#eef0f6; --sun:#b4302a; --sat:#2b5bb5;
+  --ok:#1f7a4d; --warn:#a15c00; --bad:#b4302a; --bar:#1f3a6e; --bar2:#8aa2d0;
+  --f-display:"Noto Serif KR","Batang",serif; --f-body:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12151c; --paper:#1a1f2a; --fg:#e8eaf0; --muted:#98a1b3; --line:#3a4254; --line2:#2a3040;
+  --weekend:#202738; --sun:#ff8c85; --sat:#8fb2ff; --accent:#8fb2ff; --accent-fg:#101522;
+  --ok:#6fd3a1; --warn:#f0b35c; --bad:#ff8c85; --bar:#8fb2ff; --bar2:#4a5c85; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151c; --paper:#1a1f2a; --fg:#e8eaf0; --muted:#98a1b3; --line:#3a4254; --line2:#2a3040;
+  --weekend:#202738; --sun:#ff8c85; --sat:#8fb2ff; --accent:#8fb2ff; --accent-fg:#101522;
+  --ok:#6fd3a1; --warn:#f0b35c; --bad:#ff8c85; --bar:#8fb2ff; --bar2:#4a5c85; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+.btn{background:var(--accent);color:var(--accent-fg);border:0;padding:12px 28px;font-weight:700;cursor:pointer;border-radius:4px}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.screen[hidden]{display:none}
+
+/* 표지 */
+.cover{min-height:70vh;display:grid;place-items:center;text-align:center}
+.cover .seal{border:2px solid var(--accent);padding:56px 40px 48px;max-width:520px;width:100%;background:var(--paper);position:relative}
+.cover .seal::before{content:"";position:absolute;inset:6px;border:1px solid var(--line)}
+.cover h1{font-size:clamp(34px,8vw,52px);letter-spacing:.08em;color:var(--accent);position:relative}
+.cover p{color:var(--muted);margin:14px 0 32px;position:relative}
+.cover .btn{position:relative}
+
+/* 입력 */
+.panel{background:var(--paper);border:1px solid var(--line);padding:24px;max-width:760px;margin:0 auto}
+.panel h2{font-size:22px;color:var(--accent);margin-bottom:4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.in{background:var(--bg);border:1px solid var(--line);padding:8px 10px;border-radius:4px;min-width:0;color:var(--fg)}
+.sec{font-family:var(--f-display);font-size:16px;margin:8px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.person{display:grid;grid-template-columns:minmax(120px,1.4fr) 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px}
+.person .x{height:38px}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+.err{color:var(--bad);font-size:13px;min-height:20px;margin-top:8px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg)}
+@media(max-width:560px){.person{grid-template-columns:1fr 1fr}.person .nm{grid-column:1/-1}}
+
+/* 결과 */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.top h2{font-size:clamp(20px,4vw,28px);color:var(--accent)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tab{background:none;border:0;padding:10px 20px;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;font-weight:600}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.hint{color:var(--muted);font-size:13px;margin:0 0 12px}
+.blocks{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.blk{overflow-x:auto;max-width:100%;background:var(--paper)}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+.sheet th,.sheet td{border:1px solid var(--line);padding:2px 6px;text-align:center;font-size:13px;white-space:nowrap}
+.sheet th{background:var(--weekend);font-weight:600;padding:6px}
+.sheet td.sg{min-width:84px;cursor:pointer;padding:1px 4px}
+.sheet td.sg:hover{background:var(--weekend)}
+.sheet td.sg img{height:26px;width:auto;display:block;margin:0 auto;background:#fff}
+.sheet td.sg small{color:var(--muted);font-size:11px}
+.modal{position:fixed;inset:0;background:rgba(10,14,24,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal .box{background:var(--paper);border:1px solid var(--line);padding:18px;width:100%;max-width:560px}
+.modal[hidden]{display:none}
+.drow1{grid-template-columns:minmax(90px,1fr) minmax(120px,1fr)}
+.rbox{border:1px solid var(--accent);padding:14px;margin:12px 0 4px;background:var(--bg)}
+.rbox[hidden]{display:none}
+.rbox pre{margin:8px 0;white-space:pre-wrap;font-family:var(--f-body);background:var(--paper);border:1px solid var(--line2);padding:10px}
+.rbox a.btn{display:inline-block;text-decoration:none}
+.mtabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:16px}
+.modal h3{font-size:18px;color:var(--accent);margin-bottom:4px}
+#padcv{width:100%;aspect-ratio:5/2;display:block;background:#fff;border:1px solid var(--line);touch-action:none;cursor:crosshair;margin:12px 0}
+.sigrow{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sigprev{width:150px;height:60px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);font-size:12px;background:var(--bg)}
+.sigprev img{max-width:100%;max-height:100%;background:#fff}
+.sheet tr.we td{background:var(--weekend)}
+.sheet tr.dstart td{border-top:2px solid var(--muted)}
+.sheet .sun{color:var(--sun)}.sheet .sat{color:var(--sat)}
+.sheet input[type=time]{border:0;background:transparent;width:96px;padding:2px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+.sheet input[type=time]:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--paper);border:1px solid var(--line);padding:12px 14px}
+.card b{display:block;font-size:24px;font-family:var(--f-display);color:var(--accent);font-variant-numeric:tabular-nums}
+.card span{color:var(--muted);font-size:13px}
+.stat{background:var(--paper);overflow-x:auto;margin-bottom:20px}
+.stat th,.stat td{border:1px solid var(--line);padding:8px 12px;text-align:center;white-space:nowrap}
+.stat th{background:var(--weekend)}
+.stat td:first-child{font-weight:700}
+.late{color:var(--warn);font-weight:600}.abs{color:var(--bad);font-weight:600}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.chart{background:var(--paper);border:1px solid var(--line);padding:14px;min-width:0}
+.chart h3{font-size:15px;margin-bottom:8px}
+.chart svg{width:100%;height:auto;display:block}
+svg text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.toast{color:var(--ok);font-size:13px;min-height:20px}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;margin:8px 0 20px}
+.chip{border:1px solid var(--line);background:var(--bg);padding:6px 0;text-align:center;cursor:pointer;border-radius:4px;font-variant-numeric:tabular-nums;font-size:13px;position:relative;color:var(--fg)}
+.chip.sel{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.chip.has::after{content:"";position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.chip.wk{color:var(--sun)}.chip.wk.sel{color:var(--accent-fg)}
+.drow{display:grid;grid-template-columns:minmax(90px,1fr) 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px}
+.person2{grid-template-columns:minmax(120px,1fr) auto}
+.guide h3{font-size:16px;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.steps{margin:0;padding-left:1.4em}.steps li{margin:8px 0;padding-left:4px}
+.notes{margin:0;padding-left:1.2em}.notes li{margin:6px 0}
+.btn.danger{background:var(--bad);color:var(--accent-fg)}
+.sgb{cursor:pointer;min-width:30px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px dashed var(--line);font-size:11px;color:var(--muted);background:var(--bg)}
+.sgb:has(img){border-color:transparent}
+.dstate{font-size:13px;color:var(--muted);margin:4px 0 12px}
+</style>
+
+<div class="wrap">
+
+<section class="screen cover" id="s0">
+  <div class="seal">
+    <h1>광산빌딩<br>출퇴근부</h1>
+    <p>출근할 때와 퇴근할 때 기록하고 서명하면<br>관리자가 주간·월간 기록을 확인할 수 있습니다.</p>
+    <button class="btn" id="go1">다음</button>
+    <div style="margin-top:14px;position:relative"><button class="btn ghost sm" id="adm0" type="button">관리자 화면</button></div>
+  </div>
+</section>
+
+<section class="screen" id="s2" hidden>
+  <div class="top">
+    <h2 id="title"></h2>
+    <div class="actions">
+      <button class="btn sm" id="toDaily2" type="button">매일 입력</button>
+      <button class="btn ghost sm" id="adm2" type="button">관리자 화면</button>
+      <button class="btn ghost sm" id="print" type="button">인쇄용 파일 저장</button>
+      <button class="btn ghost sm" id="xlsx" type="button">엑셀로 저장</button>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-sheet" aria-selected="true">출근부</button>
+    <button class="tab" role="tab" id="t-out" aria-selected="false">퇴근부</button>
+    <button class="tab" role="tab" id="t-stat" aria-selected="false">통계</button>
+  </div>
+  <div id="v-sheet">
+    <p class="hint" id="shint"></p>
+    <div class="blocks" id="blocks"></div>
+  </div>
+  <div id="v-stat" hidden></div>
+</section>
+
+<section class="screen" id="s3" hidden>
+  <div class="panel">
+    <h2>매일 입력</h2>
+    <p class="sub">이름을 입력하고, 출근부와 퇴근부를 따로 작성합니다. 시간을 입력하고 서명한 뒤 저장하세요.</p>
+    <div class="sec">이름</div>
+    <div id="people"></div>
+    <button class="btn ghost sm" id="addp" type="button">+ 이름 추가</button>
+    <div class="err" id="err" role="alert"></div>
+    <div style="height:12px"></div>
+    <div class="mtabs" role="tablist">
+      <button class="tab" role="tab" id="m-in" aria-selected="true">출근부 작성</button>
+      <button class="tab" role="tab" id="m-out" aria-selected="false">퇴근부 작성</button>
+    </div>
+    <div class="row">
+      <label class="f">연도<select class="in" id="dy"></select></label>
+      <label class="f">월<select class="in" id="dm"></select></label>
+      <label class="f">일자<select class="in" id="dd"></select></label>
+    </div>
+    <div class="sec">날짜 선택 <span id="chipnote" style="font-size:12px;color:var(--muted);font-family:var(--f-body)"></span></div>
+    <div class="chips" id="chips"></div>
+    <div class="sec" id="dtitle"></div>
+    <div class="dstate" id="dstate"></div>
+    <div id="drows"></div>
+    <div class="err" id="derr" role="alert"></div>
+    <div class="toast" id="dtoast" role="status"></div>
+    <div class="nav">
+      <span></span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="dsave" type="button">서명 후 저장</button>
+      </span>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:16px"><button class="btn ghost" id="dview" type="button">이 달 출퇴근부·통계 보기</button> <button class="btn ghost" id="adm1" type="button">관리자 화면</button></div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost" id="dguide" type="button">사용설명서로 돌아가기</button> <button class="btn ghost" id="dreset" type="button">초기화</button></div>
+    <div class="rbox" id="r3box" hidden style="margin-top:12px"></div>
+  </div>
+</section>
+
+<section class="screen" id="s5" hidden>
+  <div class="panel guide">
+    <h2>사용설명서</h2>
+    <p class="sub">출근할 때와 퇴근할 때 이 순서대로 기록하세요.</p>
+    <h3>출근할 때</h3>
+    <ol class="steps">
+      <li>다음 화면에서 <b>이름</b>이 맞는지 확인합니다. 처음 한 번만 입력하면 저장됩니다.</li>
+      <li><b>출근부 작성</b> 탭을 고르고 날짜가 오늘인지 확인합니다. 출근시간에는 지금 시각이 미리 들어 있습니다. 오늘은 현재 시간 이후로만 입력할 수 있습니다.</li>
+      <li><b>서명하기</b>를 눌러 패드에 손가락이나 펜으로 서명하고 <b>확인</b>을 누릅니다.</li>
+      <li><b>서명 후 저장</b>을 누릅니다. 저장되면 "출근부를 저장했습니다"라고 나옵니다.</li>
+    </ol>
+    <h3>퇴근할 때 · 오늘의 기록 저장하기</h3>
+    <ol class="steps">
+      <li><b>퇴근부 작성</b> 탭을 고르고 퇴근시간을 확인합니다. 출근시간보다 늦어야 합니다.</li>
+      <li><b>서명하기</b>로 서명한 뒤 <b>서명 후 저장</b>을 누릅니다. 오늘의 출근·퇴근 시간과 서명이 이 페이지의 저장소에 기록됩니다.</li>
+      <li>관리자는 <b>관리자 화면</b>에서 저장된 기록을 한 주, 한 달 단위로 확인합니다.</li>
+      <li>파일이 필요하면 <b>관리자 화면</b>에서 <b>엑셀로 저장</b> 또는 <b>인쇄용 파일 저장</b>을 누릅니다.</li>
+    </ol>
+    <h3>알아 두세요</h3>
+    <ul class="notes">
+      <li>관리자 화면과 월 출퇴근부·통계는 관리자 암호를 입력해야 열립니다. 관리자 화면에서는 시간과 서명을 고칠 수 있습니다.</li>
+      <li>기록은 저장 버튼을 누른 뒤에 남습니다. 저장하지 않고 닫으면 사라집니다.</li>
+      <li>관리자가 기록을 보려면 이 페이지를 열 수 있어야 합니다. 페이지 주인이 공유 메뉴에서 관리자와 직원에게 접근을 열어 주어야 하고, 직원이 기록을 저장하려면 편집 권한이 필요합니다.</li>
+      <li>잘못 저장했으면 같은 날짜에서 시간을 고쳐 다시 저장하거나, 관리자 화면에서 시간 칸을 고칩니다.</li>
+    </ul>
+    <div class="nav">
+      <button class="btn ghost" id="gback" type="button">이전</button>
+      <button class="btn" id="gnext" type="button">다음</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="s4" hidden>
+  <div class="top">
+    <h2 id="atitle"></h2>
+    <div class="actions">
+      <button class="btn ghost sm" id="aback" type="button">출근부 작성</button>
+      <button class="btn ghost sm" id="astat" type="button">통계 보기</button>
+      <button class="btn ghost sm" id="aprint" type="button">인쇄용 파일 저장</button>
+      <button class="btn sm" id="axlsx" type="button">엑셀로 저장</button>
+      <button class="btn ghost sm" id="adel" type="button">이름 삭제</button>
+      <button class="btn ghost sm" id="apw" type="button">암호 변경</button>
+    </div>
+  </div>
+  <div class="toast" id="atoast" role="status"></div>
+  <div class="rbox" id="resetbox" style="margin:0 0 16px"></div>
+  <div class="rbox" id="delbox" hidden></div>
+  <div class="row" style="align-items:flex-end">
+    <label class="f">연도<select class="in" id="ay"></select></label>
+    <label class="f">월<select class="in" id="am"></select></label>
+    <label class="f" id="awl">주<select class="in" id="aw"></select></label>
+    <div class="mtabs" style="margin:0;border:0" role="tablist">
+      <button class="tab" role="tab" id="a-month" aria-selected="true">한 달</button>
+      <button class="tab" role="tab" id="a-week" aria-selected="false">한 주</button>
+    </div>
+  </div>
+  <div id="asum"></div>
+  <div class="blocks" id="ablocks"></div>
+</section>
+
+<div class="modal" id="pwmodal" hidden role="dialog" aria-modal="true" aria-labelledby="pwt">
+  <form class="box" id="pwform" autocomplete="off">
+    <h3 id="pwt"></h3>
+    <p class="sub" id="pwsub" style="margin:0 0 12px"></p>
+    <label class="f" id="pw1l" style="margin-bottom:10px">암호<input class="in" type="password" id="pw1" autocomplete="off"></label>
+    <label class="f" id="pw2l" style="margin-bottom:10px">새 암호<input class="in" type="password" id="pw2" autocomplete="new-password"></label>
+    <label class="f" id="pw3l" style="margin-bottom:10px">새 암호 확인<input class="in" type="password" id="pw3" autocomplete="new-password"></label>
+    <div class="err" id="pwerr" role="alert"></div>
+    <div class="nav" style="margin-top:8px"><button class="btn ghost" id="pwcancel" type="button">취소</button><button class="btn" type="submit">확인</button></div>
+  </form>
+</div>
+
+<div class="modal" id="padmodal" hidden role="dialog" aria-modal="true" aria-labelledby="padtitle">
+  <div class="box">
+    <h3 id="padtitle">서명</h3>
+    <div class="sub" style="margin:0">아래 칸에 손가락, 펜 또는 마우스로 서명하세요.</div>
+    <canvas id="padcv" width="600" height="240" aria-label="서명 입력 칸"></canvas>
+    <div class="nav" style="margin-top:0">
+      <button class="btn ghost" id="padclear" type="button">지우기</button>
+      <span style="display:flex;gap:8px"><button class="btn ghost" id="padcancel" type="button">취소</button><button class="btn" id="padok" type="button">확인</button></span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+var DOW=['일','월','화','수','목','금','토'];
+var $=function(id){return document.getElementById(id)};
+var S={year:2026,month:1,d1:1,d2:31,brk:60,skipwe:true,people:[],rec:[]};
+try{var sv=JSON.parse(localStorage.getItem('gs-attend-setup')||'null');if(sv&&sv.people&&sv.people.length){S.people=sv.people;S.brk=sv.brk||60}}catch(e){}
+if(!S.people.length)S.people=[{name:'',in:'09:00',out:'18:00'}];
+var now=new Date();S.year=now.getFullYear();S.month=now.getMonth()+1;
+
+function show(id){['s0','s2','s3','s4','s5'].forEach(function(s){$(s).hidden=(s!==id)});window.scrollTo(0,0)}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]})}
+function dim(y,m){return new Date(y,m,0).getDate()}
+function toMin(t){if(!t)return null;var p=t.split(':');return (+p[0])*60+(+p[1])}
+function fmt(m){if(m==null||isNaN(m))return '-';m=Math.round(m);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function hrs(m){return (m/60).toFixed(1)}
+
+function nameErr(){var e='',seen={};S.people.forEach(function(p,i){var n=p.name.trim();
+    if(!n)e=e||(i+1)+'번째 이름을 입력하세요.';else if(seen[n])e=e||'같은 이름이 두 번 입력되었습니다: '+n;seen[n]=1});return e}
+function renderPeople(){
+  $('people').innerHTML=S.people.map(function(p,i){return '<div class="person person2">'+
+   '<label class="f nm">이름 '+(i+1)+'<input class="in" id="nm'+i+'" data-i="'+i+'" value="'+esc(p.name)+'" placeholder="이름 입력"></label>'+
+   (S.people.length>1?'<button class="btn ghost sm x" type="button" data-del="'+i+'" aria-label="삭제">삭제</button>':'<span></span>')+'</div>'}).join('')}
+function peopleChanged(){var e=nameErr();$('err').textContent=e;$('dtoast').textContent='';if(!e)saveSetup();dailyRefresh(false)}
+$('people').addEventListener('change',function(e){var t=e.target;if(t.dataset.i==null)return;S.people[+t.dataset.i].name=t.value.trim();t.value=S.people[+t.dataset.i].name;peopleChanged()});
+$('people').addEventListener('click',function(e){var d=e.target.dataset.del;if(d!=null){S.people.splice(+d,1);renderPeople();peopleChanged()}});
+$('addp').onclick=function(){if(S.people.length>=8)return;S.people.push({name:'',in:'09:00',out:'18:00'});renderPeople();peopleChanged()};
+$('go1').onclick=function(){show('s5')};
+$('gback').onclick=function(){show('s0')};
+$('gnext').onclick=function(){openDaily()};
+
+/* 저장소: 가능하면 db(어느 기기에서나 유지), 아니면 이 브라우저에만 저장 */
+var DB=null,cache={},dbReady=Promise.resolve(null);
+try{if(window.claude&&claude.use)dbReady=claude.use('db').then(function(d){DB=d}).catch(function(){})}catch(e){}
+function ymk(y,m){return y+'-'+String(m).padStart(2,'0')}
+async function loadMonth(y,m){await dbReady;var k=ymk(y,m);if(cache[k])return cache[k];var o=null;
+  try{if(DB){var sn=await DB.doc('attendance/'+k).get();if(sn.exists)o=JSON.parse(sn.data().json)}}catch(e){}
+  if(!o){try{o=JSON.parse(localStorage.getItem('gs-att-'+k)||'null')}catch(e){}}
+  cache[k]=o||{};return cache[k]}
+async function saveMonth(y,m){await dbReady;var k=ymk(y,m),j=JSON.stringify(cache[k]||{});
+  try{localStorage.setItem('gs-att-'+k,j)}catch(e){}
+  if(DB){try{await DB.doc('attendance/'+k).set({json:j})}catch(e){return false}}return true}
+async function saveSetup(){var j=JSON.stringify({people:S.people,brk:S.brk});
+  try{localStorage.setItem('gs-attend-setup',j)}catch(e){}
+  await dbReady;if(DB){try{await DB.doc('attendance/setup').set({json:j})}catch(e){}}}
+dbReady.then(async function(){if(!DB)return;try{var sn=await DB.doc('attendance/setup').get();
+  if(sn.exists){var o=JSON.parse(sn.data().json);if(o.people&&o.people.length){S.people=o.people;S.brk=o.brk||60;renderPeople();if(!$('s3').hidden)dailyRefresh(false)}}}catch(e){}});
+function setRec(y,m,name,d,patch){var k=ymk(y,m);cache[k]=cache[k]||{};cache[k][name]=cache[k][name]||{};
+  var o=cache[k][name][d]||{in:'',out:'',sigIn:'',sigOut:''};if(o.sig&&!o.sigIn)o.sigIn=o.sig;delete o.sig;
+  for(var q in patch)o[q]=patch[q];cache[k][name][d]=o}
+
+/* 서명 패드 */
+var PAD={ink:false,draw:false,cb:null};
+(function(){var cv=$('padcv'),cx=cv.getContext('2d');
+  function pos(e){var q=cv.getBoundingClientRect();return [(e.clientX-q.left)*cv.width/q.width,(e.clientY-q.top)*cv.height/q.height]}
+  PAD.clear=function(){cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.strokeStyle='#111';cx.lineWidth=3.5;cx.lineCap='round';cx.lineJoin='round';PAD.ink=false};
+  cv.addEventListener('pointerdown',function(e){e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}PAD.draw=true;var q=pos(e);cx.beginPath();cx.moveTo(q[0],q[1]);cx.lineTo(q[0]+.1,q[1]+.1);cx.stroke();PAD.ink=true});
+  cv.addEventListener('pointermove',function(e){if(!PAD.draw)return;e.preventDefault();var q=pos(e);cx.lineTo(q[0],q[1]);cx.stroke()});
+  function up(){PAD.draw=false}cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+  PAD.open=function(title,existing,cb){$('padtitle').textContent=title;PAD.clear();PAD.cb=cb;$('padmodal').hidden=false;
+    if(existing){var im=new Image();im.onload=function(){cx.drawImage(im,0,0,cv.width,cv.height);PAD.ink=true};im.src=existing}};
+  PAD.export=function(){if(!PAD.ink)return '';var t=document.createElement('canvas');t.width=300;t.height=120;t.getContext('2d').drawImage(cv,0,0,300,120);return t.toDataURL('image/png')};
+  $('padclear').onclick=function(){PAD.clear()};
+  $('padcancel').onclick=function(){$('padmodal').hidden=true;PAD.cb=null};
+  $('padok').onclick=function(){var f=PAD.cb,v=PAD.export();$('padmodal').hidden=true;PAD.cb=null;if(f)f(v)};
+})();
+var saveT=null;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(function(){saveMonth(S.year,S.month)},600)}
+
+/* 출근부 만들기: 저장된 기록이 있으면 그대로 쓰고, 없는 날은 기본 시간으로 채움 */
+async function buildAndShow(fillDefault){
+  var st=await loadMonth(S.year,S.month),n=dim(S.year,S.month);
+  S.rec=S.people.map(function(p){var r=[];for(var d=1;d<=n;d++){
+    var w=new Date(S.year,S.month-1,d).getDay(),sv=st[p.name]&&st[p.name][d];
+    if(sv)r.push({in:sv.in||'',out:sv.out||'',sigIn:sv.sigIn||sv.sig||'',sigOut:sv.sigOut||''});
+    else if(fillDefault&&!(S.skipwe&&(w===0||w===6))&&d>=S.d1&&d<=S.d2)r.push({in:p.in,out:p.out,sigIn:'',sigOut:''});
+    else r.push({in:'',out:'',sigIn:'',sigOut:''})}return r});
+  S.base='광산빌딩 '+S.year+'년 '+S.month+'월'+((S.d1>1||S.d2<n)?' '+S.d1+'일~'+S.d2+'일':'');
+  renderStat();tab('in');show('s2')}
+/* 매일 입력: 출근부 / 퇴근부를 따로 작성하고 서명한다 */
+var D={y:0,m:0,d:1,mode:'in',sig:[]};
+function nowInfo(){var t=new Date();return {y:t.getFullYear(),m:t.getMonth()+1,d:t.getDate(),min:t.getHours()*60+t.getMinutes()}}
+function isToday(){var n=nowInfo();return n.y===D.y&&n.m===D.m&&n.d===D.d}
+function mlab(){return D.mode==='in'?'출근':'퇴근'}
+function openDaily(){
+  renderPeople();
+  var t=new Date();D.y=S.year;D.m=S.month;D.d=(t.getFullYear()===D.y&&t.getMonth()+1===D.m)?t.getDate():1;D.mode='in';
+  var h='',i;for(i=2023;i<=2030;i++)h+='<option value="'+i+'">'+i+'년</option>';$('dy').innerHTML=h;$('dy').value=D.y;
+  h='';for(i=1;i<=12;i++)h+='<option value="'+i+'">'+i+'월</option>';$('dm').innerHTML=h;$('dm').value=D.m;
+  $('derr').textContent='';$('dtoast').textContent='';$('err').textContent=nameErr();
+  dailyRefresh(true);show('s3')}
+async function dailyRefresh(fillDays){
+  D.y=+$('dy').value;D.m=+$('dm').value;
+  var key=D.mode,sk=key==='in'?'sigIn':'sigOut',lab=mlab();
+  $('m-in').setAttribute('aria-selected',key==='in');$('m-out').setAttribute('aria-selected',key==='out');
+  var n=dim(D.y,D.m);if(fillDays||$('dd').options.length!==n){var h='';for(var i=1;i<=n;i++)h+='<option value="'+i+'">'+i+'일</option>';$('dd').innerHTML=h}
+  D.d=Math.min(D.d,n);$('dd').value=D.d;
+  var st=await loadMonth(D.y,D.m),c='';
+  for(var d=1;d<=n;d++){var w=new Date(D.y,D.m-1,d).getDay(),has=S.people.some(function(p){return st[p.name]&&st[p.name][d]&&st[p.name][d][key]});
+    c+='<button type="button" class="chip'+(has?' has':'')+((w===0||w===6)?' wk':'')+(d===D.d?' sel':'')+'" data-d="'+d+'" aria-label="'+d+'일 '+DOW[w]+'요일">'+d+'<br><small>'+DOW[w]+'</small></button>'}
+  $('chips').innerHTML=c;
+  $('chipnote').textContent='('+lab+' 기록이 저장된 날에 초록 점)';
+  var wd=new Date(D.y,D.m-1,D.d).getDay(),we=(wd===0||wd===6)&&S.skipwe,today=isToday(),now=nowInfo().min;
+  $('dtitle').textContent=D.y+'년 '+D.m+'월 '+D.d+'일 ('+DOW[wd]+') '+lab+'부 작성';
+  $('dstate').textContent=today?'오늘은 현재 시간('+fmt(now)+') 이후의 시간만 입력할 수 있습니다. 입력 후 서명하고 저장하세요. 기록하지 않는 사람은 시간을 비워 두세요.':'오늘이 아닌 날짜는 시간 제한 없이 입력할 수 있습니다. 입력 후 서명하고 저장하세요. 기록하지 않는 사람은 시간을 비워 두세요.';
+  if(nameErr()){D.sig=[];$('drows').innerHTML='<p class="hint">이름을 입력하면 출근·퇴근 시간을 입력할 수 있습니다.</p>';return}
+  D.sig=S.people.map(function(p){var sv=st[p.name]&&st[p.name][D.d];return sv&&sv[sk]?sv[sk]:''});
+  $('drows').innerHTML=S.people.map(function(p,i){var sv=st[p.name]&&st[p.name][D.d],saved=sv&&sv[key]?sv[key]:'',
+      val=saved||(today?fmt(now):(we?'':(key==='in'?p.in:p.out)));
+    return '<div class="drow drow1"><label class="f" style="color:var(--fg);font-weight:700;font-size:15px">'+esc(p.name)+(saved?' <span style="color:var(--ok);font-weight:400;font-size:12px">저장됨</span>':'')+'</label>'+
+     '<label class="f">'+lab+'시간<input class="in" type="time" id="di'+i+'" value="'+val+'"'+(today?' min="'+fmt(now)+'"':'')+'></label>'+
+     '<div class="sigrow"><div class="sigprev" id="sp'+i+'">'+(D.sig[i]?'<img src="'+D.sig[i]+'" alt="서명">':'서명 없음')+'</div><button class="btn ghost sm" type="button" data-sig="'+i+'">서명하기</button></div></div>'}).join('')}
+function setMode(m){D.mode=m;$('derr').textContent='';$('dtoast').textContent='';dailyRefresh(false)}
+$('m-in').onclick=function(){setMode('in')};$('m-out').onclick=function(){setMode('out')};
+$('drows').addEventListener('click',function(e){var b=e.target.closest('[data-sig]');if(!b)return;var i=+b.dataset.sig;
+  PAD.open(S.people[i].name+' · '+D.m+'월 '+D.d+'일 '+mlab()+' 서명',D.sig[i],function(v){D.sig[i]=v;$('sp'+i).innerHTML=v?'<img src="'+v+'" alt="서명">':'서명 없음'})});
+$('chips').addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;D.d=+b.dataset.d;$('dtoast').textContent='';$('derr').textContent='';dailyRefresh(false)});
+$('dy').onchange=$('dm').onchange=function(){D.d=1;dailyRefresh(true)};
+$('dd').onchange=function(){D.d=+$('dd').value;$('dtoast').textContent='';dailyRefresh(false)};
+
+function checkItem(st,p,i,v){
+  var key=D.mode,lab=mlab(),rec=st[p.name]&&st[p.name][D.d],mv=toMin(v),now=nowInfo();
+  if(isToday()&&mv<now.min&&!(rec&&rec[key]===v))return p.name+'님의 '+lab+'시간은 현재 시간('+fmt(now.min)+') 이후로 입력하세요.';
+  if(!D.sig[i])return p.name+'님의 서명이 필요합니다. 서명하기를 눌러 서명하세요.';
+  if(key==='out'&&rec&&rec.in&&mv<=toMin(rec.in))return p.name+'님의 퇴근시간은 출근시간('+rec.in+')보다 늦어야 합니다.';
+  if(key==='in'&&rec&&rec.out&&mv>=toMin(rec.out))return p.name+'님의 출근시간은 퇴근시간('+rec.out+')보다 빨라야 합니다.';
+  return ''}
+async function dailySave(){
+  var ne=nameErr();if(ne){$('derr').textContent=ne;return}
+  var key=D.mode,sk=key==='in'?'sigIn':'sigOut',lab=mlab(),err='',items=[],st=await loadMonth(D.y,D.m);
+  S.people.forEach(function(p,i){var v=$('di'+i).value;if(!v)return;
+    var e=err?'':checkItem(st,p,i,v);if(e)err=e;items.push({p:p,i:i,v:v})});
+  if(!err&&!items.length)err='저장할 '+lab+'시간이 없습니다. 시간을 입력하세요.';
+  $('derr').textContent=err;if(err)return;
+  items.forEach(function(it){var patch={};patch[key]=it.v;patch[sk]=D.sig[it.i];setRec(D.y,D.m,it.p.name,D.d,patch)});
+  var ok=await saveMonth(D.y,D.m);
+  var sd=D.d;await dailyRefresh(false);
+  $('dtoast').textContent=ok?D.m+'월 '+sd+'일 '+lab+'부를 저장했습니다.':'이 브라우저에는 저장했지만 서버 저장은 실패했습니다.';}
+$('dsave').onclick=function(){dailySave()};
+$('dview').onclick=function(){if(nameErr()){$('derr').textContent=nameErr();return}requireAdmin(function(){S.year=D.y;S.month=D.m;S.d1=1;S.d2=dim(D.y,D.m);buildAndShow(false)})};
+$('toDaily2').onclick=function(){openDaily()};
+
+/* 출근부 / 퇴근부 표 */
+function renderSheet(){
+  var kind=S.kind==='out'?'out':'in',lab=kind==='in'?'출근':'퇴근',sk=kind==='in'?'sigIn':'sigOut',P=S.people.length,html='';
+  for(var b=S.d1-1;b<S.d2;b+=10){
+    html+='<div class="blk"><table class="sheet"><thead><tr><th>성명</th><th>일자</th><th>요일</th><th>'+lab+'시간</th><th>서명</th></tr></thead><tbody>';
+    for(var d=b+1;d<=Math.min(b+10,S.d2);d++){
+      var w=new Date(S.year,S.month-1,d).getDay(),we=(w===0||w===6),cl=w===0?'sun':w===6?'sat':'';
+      for(var i=0;i<P;i++){
+        html+='<tr class="'+(we?'we ':'')+(i===0?'dstart':'')+'"><td>'+esc(S.people[i].name)+'</td>';
+        if(i===0)html+='<td rowspan="'+P+'">'+S.month+'/'+d+'</td><td rowspan="'+P+'" class="'+cl+'">'+DOW[w]+'</td>';
+        var r=S.rec[i][d-1];
+        html+='<td><input type="time" data-p="'+i+'" data-d="'+(d-1)+'" data-k="'+kind+'" value="'+r[kind]+'" aria-label="'+esc(S.people[i].name)+' '+d+'일 '+lab+'"></td>'+
+              '<td class="sg" data-p="'+i+'" data-d="'+(d-1)+'" title="눌러서 서명">'+(r[sk]?'<img src="'+r[sk]+'" alt="서명">':'<small>서명</small>')+'</td></tr>'}}
+    html+='</tbody></table></div>'}
+  $('blocks').innerHTML=html}
+$('blocks').addEventListener('click',function(e){var c=e.target.closest('td.sg');if(!c)return;
+  var sk=S.kind==='out'?'sigOut':'sigIn',pi=+c.dataset.p,di=+c.dataset.d,rr=S.rec[pi][di],nm=S.people[pi].name;
+  PAD.open(nm+' · '+S.month+'월 '+(di+1)+'일 서명',rr[sk],function(v){rr[sk]=v;
+    loadMonth(S.year,S.month).then(function(){var pt={};pt[sk]=v;setRec(S.year,S.month,nm,di+1,pt);saveSoon()});
+    c.innerHTML=v?'<img src="'+v+'" alt="서명">':'<small>서명</small>'})});
+$('blocks').addEventListener('input',function(e){var t=e.target;if(t.dataset.k==null)return;
+  var rr=S.rec[+t.dataset.p][+t.dataset.d];rr[t.dataset.k]=t.value;
+  loadMonth(S.year,S.month).then(function(){var pt={};pt[t.dataset.k]=t.value;setRec(S.year,S.month,S.people[+t.dataset.p].name,+t.dataset.d+1,pt);saveSoon()});
+  renderStat()});
+
+/* 관리자 암호: 처음 들어갈 때 정하고, 그 뒤로는 입력해야 들어간다 */
+var PW={mode:'',ok:null,fails:0,lockUntil:0};
+async function hashPw(pw){var t='gs-admin:'+pw;
+  try{var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+  catch(e){var h=5381;for(var i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return 'x'+h}}
+async function getAdminHash(){await dbReady;var h=null;
+  try{if(DB){var sn=await DB.doc('attendance/admin').get();if(sn.exists)h=sn.data().h}}catch(e){}
+  if(!h){try{h=localStorage.getItem('gs-att-admin')}catch(e){}}return h||null}
+async function setAdminHash(h){try{localStorage.setItem('gs-att-admin',h)}catch(e){}
+  await dbReady;if(DB){try{await DB.doc('attendance/admin').set({h:h})}catch(e){}}}
+function openPw(mode,ok){PW.mode=mode;PW.ok=ok;
+  $('pwt').textContent=mode==='set'?'관리자 암호 정하기':mode==='change'?'관리자 암호 변경':'관리자 암호 입력';
+  $('pwsub').textContent=mode==='set'?'관리자 화면에 처음 들어갑니다. 앞으로 사용할 암호를 정하세요. (4자 이상)':mode==='change'?'현재 암호를 입력하고 새 암호를 정하세요.':'관리자 화면에 들어가려면 암호를 입력하세요.';
+  $('pw1l').hidden=(mode==='set');$('pw2l').hidden=(mode==='enter');$('pw3l').hidden=(mode==='enter');
+  $('pw1').value=$('pw2').value=$('pw3').value='';$('pwerr').textContent='';$('pwmodal').hidden=false;
+  setTimeout(function(){try{(mode==='set'?$('pw2'):$('pw1')).focus()}catch(e){}},50)}
+async function requireAdmin(cb){if(S.adminOK){cb();return}var h=await getAdminHash();openPw(h?'enter':'set',cb)}
+$('pwcancel').onclick=function(){$('pwmodal').hidden=true;PW.ok=null};
+$('pwform').onsubmit=async function(e){e.preventDefault();var m=PW.mode,err='';
+  if(Date.now()<PW.lockUntil){$('pwerr').textContent='암호를 여러 번 틀렸습니다. '+Math.ceil((PW.lockUntil-Date.now())/1000)+'초 뒤에 다시 시도하세요.';return}
+  var stored=await getAdminHash();
+  if(m!=='set'){var h1=await hashPw($('pw1').value);
+    if(h1!==stored){PW.fails++;if(PW.fails>=5){PW.fails=0;PW.lockUntil=Date.now()+30000}$('pwerr').textContent='암호가 맞지 않습니다.';return}PW.fails=0}
+  if(m!=='enter'){var a=$('pw2').value,b=$('pw3').value;
+    if(a.length<4)err='새 암호는 4자 이상이어야 합니다.';else if(a!==b)err='새 암호와 확인 암호가 같지 않습니다.';
+    if(err){$('pwerr').textContent=err;return}await setAdminHash(await hashPw(a))}
+  S.adminOK=true;$('pwmodal').hidden=true;var f=PW.ok;PW.ok=null;if(f)f()};
+
+/* 관리자 화면: 한 주 / 한 달 출퇴근 기록을 엑셀 양식(성명·일자·요일·출근시간·퇴근시간·서명)으로 보여 준다 */
+var A={mode:'month',wi:0};
+function weeksOf(y,m){var f=new Date(y,m-1,1),last=new Date(y,m,0),off=(f.getDay()+6)%7,st=new Date(y,m-1,1-off),a=[];
+  while(st<=last){a.push(new Date(st));st=new Date(st.getFullYear(),st.getMonth(),st.getDate()+7)}return a}
+function dateList(y,m,mode,wi){var out=[],d;
+  if(mode==='month'){var n=dim(y,m);for(d=1;d<=n;d++)out.push({y:y,m:m,d:d})}
+  else{var ws=weeksOf(y,m)[wi];for(var k=0;k<7;k++){var t=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+k);out.push({y:t.getFullYear(),m:t.getMonth()+1,d:t.getDate()})}}
+  return out}
+function recOf(name,x){var mo=cache[ymk(x.y,x.m)],r=mo&&mo[name]&&mo[name][x.d];
+  return r?{in:r.in||'',out:r.out||'',sigIn:r.sigIn||r.sig||'',sigOut:r.sigOut||''}:{in:'',out:'',sigIn:'',sigOut:''}}
+function ad(i,x,k){return ' data-n="'+i+'" data-y="'+x.y+'" data-m="'+x.m+'" data-d="'+x.d+'" data-k="'+k+'"'}
+function tin(i,x,k,v,name){return '<input type="time"'+ad(i,x,k)+' value="'+v+'" aria-label="'+esc(name)+' '+x.m+'월 '+x.d+'일 '+(k==='in'?'출근':'퇴근')+'">'}
+function sgb(i,x,k,v,h,name){return '<span class="sgb" role="button" tabindex="0"'+ad(i,x,k)+' title="눌러서 '+(k==='in'?'출근':'퇴근')+' 서명 수정">'+(v?'<img src="'+v+'" alt="" style="height:'+h+'px;width:auto;background:#fff">':(k==='in'?'출':'퇴'))+'</span>'}
+function AP(){return S.people.map(function(p,i){return {p:p,i:i}}).filter(function(q){return q.p.name.trim()})}
+function adminTable(dates,imgH,edit){var L0=AP(),P=L0.length,html='';
+  if(!P)return '<p class="hint">등록된 이름이 없습니다. 출퇴근부 입력 화면에서 이름을 입력하세요.</p>';
+  for(var b=0;b<dates.length;b+=10){
+    html+='<div class="blk"><table class="sheet"><thead><tr><th>성명</th><th>일자</th><th>요일</th><th>출근시간</th><th>퇴근시간</th><th>서명</th></tr></thead><tbody>';
+    dates.slice(b,b+10).forEach(function(x){var w=new Date(x.y,x.m-1,x.d).getDay(),we=(w===0||w===6),cl=w===0?'sun':w===6?'sat':'';
+      L0.forEach(function(q,pos){var p=q.p,i=q.i,r=recOf(p.name,x);
+        html+='<tr class="'+(we?'we ':'')+(pos===0?'dstart ds':'')+'"><td>'+esc(p.name)+'</td>'+
+          (pos===0?'<td rowspan="'+P+'">'+x.m+'/'+x.d+'</td><td rowspan="'+P+'" class="'+cl+'">'+DOW[w]+'</td>':'')+
+          '<td>'+(edit?tin(i,x,'in',r.in,p.name):r.in)+'</td><td>'+(edit?tin(i,x,'out',r.out,p.name):r.out)+'</td><td class="sg"><div style="display:flex;gap:3px;justify-content:center">'+
+          (edit?sgb(i,x,'in',r.sigIn,imgH,p.name)+sgb(i,x,'out',r.sigOut,imgH,p.name):
+           (r.sigIn?'<img src="'+r.sigIn+'" alt="출근 서명" style="height:'+imgH+'px;width:auto;background:#fff">':'')+
+           (r.sigOut?'<img src="'+r.sigOut+'" alt="퇴근 서명" style="height:'+imgH+'px;width:auto;background:#fff">':''))+'</div></td></tr>'})});
+    html+='</tbody></table></div>'}
+  return html}
+function summary(dates){return AP().map(function(q){var p=q.p,o={name:p.name,days:0,tot:0,ins:[],outs:[],late:0,early:0};
+  dates.forEach(function(x){var r=recOf(p.name,x),a=toMin(r.in),c=toMin(r.out);
+    if(a!=null&&c!=null&&c>a){o.days++;o.tot+=Math.max(0,c-a-S.brk);o.ins.push(a);o.outs.push(c);if(a>540)o.late++;if(c<1080)o.early++}});
+  var sum=function(v){return v.reduce(function(x,y){return x+y},0)};
+  o.avg=o.days?o.tot/o.days:0;o.avgIn=o.ins.length?sum(o.ins)/o.ins.length:null;o.avgOut=o.outs.length?sum(o.outs)/o.outs.length:null;return o})}
+function periodTitle(dates){var f=dates[0],l=dates[dates.length-1];
+  return A.mode==='month'?'광산빌딩 '+f.y+'년 '+f.m+'월 출퇴근부':'광산빌딩 '+f.m+'/'+f.d+'~'+l.m+'/'+l.d+' 주간 출퇴근부'}
+function curDates(){return dateList(+$('ay').value,+$('am').value,A.mode,+$('aw').value||0)}
+async function adminRender(){
+  var y=+$('ay').value,m=+$('am').value,ws=weeksOf(y,m);
+  if(A.wi>=ws.length)A.wi=0;
+  var h='';ws.forEach(function(w,i){var e=new Date(w.getFullYear(),w.getMonth(),w.getDate()+6);
+    h+='<option value="'+i+'">'+(w.getMonth()+1)+'/'+w.getDate()+'('+DOW[w.getDay()]+') ~ '+(e.getMonth()+1)+'/'+e.getDate()+'('+DOW[e.getDay()]+')</option>'});
+  $('aw').innerHTML=h;$('aw').value=A.wi;$('awl').hidden=(A.mode!=='week');
+  $('a-month').setAttribute('aria-selected',A.mode==='month');$('a-week').setAttribute('aria-selected',A.mode==='week');
+  var dates=dateList(y,m,A.mode,A.wi),seen={};
+  for(var k=0;k<dates.length;k++){var key=ymk(dates[k].y,dates[k].m);if(!seen[key]){seen[key]=1;await loadMonth(dates[k].y,dates[k].m)}}
+  $('atitle').textContent=periodTitle(dates);
+  $('ablocks').innerHTML=adminTable(dates,26,true);
+  $('asum').innerHTML=summaryHtml(dates)}
+function summaryHtml(dates){
+  var L=summary(dates),t='<div class="stat"><table style="width:100%"><thead><tr><th>성명</th><th>출근일수</th><th>총 근무시간</th><th>일평균</th><th>평균 출근</th><th>평균 퇴근</th><th>지각</th><th>조퇴</th></tr></thead><tbody>';
+  L.forEach(function(o){t+='<tr><td>'+esc(o.name)+'</td><td>'+o.days+'일</td><td>'+hrs(o.tot)+'h</td><td>'+hrs(o.avg)+'h</td><td>'+fmt(o.avgIn)+'</td><td>'+fmt(o.avgOut)+'</td><td>'+o.late+'회</td><td>'+o.early+'회</td></tr>'});
+return t+'</tbody></table></div><p class="hint">근무시간은 퇴근−출근에서 휴게 '+S.brk+'분을 뺀 값입니다. 지각·조퇴는 출근 09:00, 퇴근 18:00 기준입니다. 서명 칸에는 출근 서명과 퇴근 서명이 차례로 나옵니다.</p>'}
+function openAdminInner(){
+  var h='',i;for(i=2023;i<=2030;i++)h+='<option value="'+i+'">'+i+'년</option>';$('ay').innerHTML=h;$('ay').value=Math.min(2030,Math.max(2023,S.year));
+  h='';for(i=1;i<=12;i++)h+='<option value="'+i+'">'+i+'월</option>';$('am').innerHTML=h;$('am').value=S.month;
+  A.mode='month';var t=new Date(),ws=weeksOf(S.year,S.month);A.wi=0;
+  ws.forEach(function(w,k){var e=new Date(w.getFullYear(),w.getMonth(),w.getDate()+7);if(t>=w&&t<e)A.wi=k});
+  $('atoast').textContent='';buildAdminReset();show('s4');adminRender()}
+$('ay').onchange=$('am').onchange=function(){A.wi=0;adminRender()};
+$('aw').onchange=function(){A.wi=+$('aw').value;adminRender()};
+$('a-month').onclick=function(){A.mode='month';adminRender()};$('a-week').onclick=function(){A.mode='week';adminRender()};
+function openAdmin(){requireAdmin(openAdminInner)}
+$('adm0').onclick=openAdmin;$('adm1').onclick=openAdmin;$('adm2').onclick=openAdmin;
+var saveTs={};function saveMonthSoon(y,m){var k=ymk(y,m);clearTimeout(saveTs[k]);saveTs[k]=setTimeout(function(){saveMonth(y,m)},600)}
+$('ablocks').addEventListener('input',function(e){var t=e.target;if(t.type!=='time'||t.dataset.k==null)return;
+  var nm=S.people[+t.dataset.n].name,y=+t.dataset.y,m=+t.dataset.m,d=+t.dataset.d,pt={};pt[t.dataset.k]=t.value;
+  setRec(y,m,nm,d,pt);saveMonthSoon(y,m);$('asum').innerHTML=summaryHtml(curDates())});
+function adminSig(b){var nm=S.people[+b.dataset.n].name,y=+b.dataset.y,m=+b.dataset.m,d=+b.dataset.d,k=b.dataset.k,sk=k==='in'?'sigIn':'sigOut',lab=k==='in'?'출근':'퇴근';
+  PAD.open(nm+' · '+m+'월 '+d+'일 '+lab+' 서명',recOf(nm,{y:y,m:m,d:d})[sk],function(v){var pt={};pt[sk]=v;setRec(y,m,nm,d,pt);saveMonthSoon(y,m);
+    b.innerHTML=v?'<img src="'+v+'" alt="" style="height:26px;width:auto;background:#fff">':(k==='in'?'출':'퇴')})}
+$('ablocks').addEventListener('click',function(e){var b=e.target.closest('.sgb');if(b)adminSig(b)});
+$('ablocks').addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var b=e.target.closest&&e.target.closest('.sgb');if(b){e.preventDefault();adminSig(b)}});
+$('apw').onclick=function(){$('atoast').textContent='';openPw('change',function(){$('atoast').textContent='암호를 변경했습니다.'})};
+$('aback').onclick=function(){openDaily()};
+$('astat').onclick=function(){var y=+$('ay').value,m=+$('am').value;S.year=y;S.month=m;S.d1=1;S.d2=dim(y,m);buildAndShow(false)};
+$('axlsx').onclick=async function(){var t=$('atoast');t.textContent='';
+  try{var dl=await claude.use('downloads');if(!dl||!window.XLSX){t.textContent='이 화면에서는 파일 저장을 쓸 수 없습니다.';return}
+    var dates=curDates(),AL=AP(),P=AL.length,nb=Math.ceil(dates.length/10),W=6*nb,rows=[],r,c;
+    for(r=0;r<2+10*P;r++){rows.push(new Array(W).fill(''))}
+    rows[0][0]=periodTitle(dates);
+    for(var b=0;b<nb;b++)['성명','일자','요일','출근시간','퇴근시간','서명'].forEach(function(hd,k){rows[1][6*b+k]=hd});
+    dates.forEach(function(x,idx){var b=Math.floor(idx/10),k=idx%10,w=new Date(x.y,x.m-1,x.d).getDay();
+      AL.forEach(function(q,i){var p=q.p,rc=recOf(p.name,x),row=rows[2+k*P+i],o=6*b;
+        row[o]=p.name;row[o+1]=x.m+'/'+x.d;row[o+2]=DOW[w];row[o+3]=rc.in;row[o+4]=rc.out;row[o+5]=(rc.sigIn?'출근○':'')+(rc.sigIn&&rc.sigOut?' ':'')+(rc.sigOut?'퇴근○':'')})});
+    var ws=XLSX.utils.aoa_to_sheet(rows);ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:W-1}}];
+    ws['!cols']=[];for(c=0;c<W;c++)ws['!cols'].push({wch:[8,7,5,9,9,12][c%6]});
+    var sm=[['성명','출근일수','총 근무시간(h)','일평균(h)','평균 출근','평균 퇴근','지각(회)','조퇴(회)']];
+    summary(dates).forEach(function(o){sm.push([o.name,o.days,+hrs(o.tot),+hrs(o.avg),fmt(o.avgIn),fmt(o.avgOut),o.late,o.early])});
+    var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'양식');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sm),'합계');
+    var buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    await dl.save({filename:periodTitle(dates).replace(/\s/g,'_').replace(/\//g,'-')+'.xlsx',data:buf});t.textContent='저장 요청을 보냈습니다.';
+  }catch(e){t.textContent=(e&&e.code==='declined')?'저장을 취소했습니다.':'파일을 저장하지 못했습니다.'}};
+$('aprint').onclick=async function(){var t=$('atoast');t.textContent='';
+  try{var dl=await claude.use('downloads');if(!dl){t.textContent='이 화면에서는 파일 저장을 쓸 수 없습니다.';return}
+    var dates=curDates(),title=periodTitle(dates);
+    var html='<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+
+     '@page{size:A4 landscape;margin:10mm}body{font-family:"Malgun Gothic","Noto Sans KR",sans-serif;color:#000;margin:0;padding:12px}'+
+     'h1{text-align:center;font-size:22px;margin:0 0 10px}.bar{text-align:center;margin-bottom:10px}'+
+     '.wrap{display:flex;gap:8px;align-items:flex-start;justify-content:center}.blk{flex:1}table{border-collapse:collapse;font-size:11px;width:100%}'+
+     'th,td{border:1px solid #000;padding:2px 3px;text-align:center;height:17px}th{background:#e9e9e9}tr.ds td{border-top:2px solid #000}tr.we td{background:#f0f0f0}td.sg{min-width:70px}'+
+     '@media print{.bar{display:none}}</style></head><body><div class="bar"><button onclick="window.print()" style="padding:8px 20px;font-size:14px">인쇄</button></div>'+
+     '<h1>'+esc(title)+'</h1><div class="wrap">'+adminTable(dates,20)+'</div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},300)})<\/script></body></html>';
+    await dl.save({filename:title.replace(/\s/g,'_').replace(/\//g,'-')+'_인쇄용.html',data:html});t.textContent='저장한 파일을 열면 인쇄창이 바로 나옵니다.';
+  }catch(e){t.textContent=(e&&e.code==='declined')?'저장을 취소했습니다.':'파일을 저장하지 못했습니다.'}};
+
+/* 초기화: 월·날짜·출근부/퇴근부를 골라서 지운다 */
+async function listAllKeys(){var ks={};
+  try{Object.keys(localStorage).forEach(function(k){if(/^gs-att-\d{4}-\d{2}$/.test(k))ks[k.slice(7)]=1})}catch(e){}
+  await dbReady;if(DB){try{var qs=await DB.collection('attendance').get();qs.docs.forEach(function(d){if(/^\d{4}-\d{2}$/.test(d.id))ks[d.id]=1})}catch(e){}}
+  return Object.keys(ks)}
+async function wipeSel(y,m,d,doIn,doOut,who){
+  var keys=m===0?await listAllKeys():[ymk(y,m)],cleared=0,ok=true;
+  for(var i=0;i<keys.length;i++){var yy=+keys[i].slice(0,4),mm=+keys[i].slice(5),st=await loadMonth(yy,mm),ch=false;
+    Object.keys(st).forEach(function(name){if(who&&name!==who)return;Object.keys(st[name]).forEach(function(day){
+      if(d!==0&&+day!==d)return;var rec=st[name][day];
+      var had=(doIn&&(rec.in||rec.sigIn||rec.sig))||(doOut&&(rec.out||rec.sigOut));
+      if(doIn){rec.in='';rec.sigIn='';delete rec.sig}if(doOut){rec.out='';rec.sigOut=''}
+      if(had){cleared++;ch=true}
+      if(!rec.in&&!rec.out&&!rec.sigIn&&!rec.sigOut)delete st[name][day]})});
+    if(ch||m!==0){if(!(await saveMonth(yy,mm)))ok=false}}
+  return {ok:ok,cleared:cleared}}
+function openReset(boxId,y,m,d,after,persist){var box=$(boxId),P=boxId+'_',hp='<option value="">전체 사람</option>',hy='',hm='<option value="0">전체 (모든 연도·월)</option>',i;
+  AP().forEach(function(q){hp+='<option value="'+esc(q.p.name)+'">'+esc(q.p.name)+'</option>'});
+  for(i=2023;i<=2030;i++)hy+='<option value="'+i+'">'+i+'년</option>';
+  for(i=1;i<=12;i++)hm+='<option value="'+i+'">'+i+'월</option>';
+  box.innerHTML='<b>'+(persist?'기록 삭제':'기록 초기화')+'</b><p class="hint" style="margin:6px 0 10px">지울 사람, 월, 날짜, 기록 종류를 고르세요. 지운 시간과 서명은 되돌릴 수 없고, 이름은 남습니다.</p>'+
+   '<div class="row" style="margin-bottom:10px"><label class="f">사람<select class="in" id="'+P+'p">'+hp+'</select></label><label class="f">연도<select class="in" id="'+P+'y">'+hy+'</select></label>'+
+   '<label class="f">월<select class="in" id="'+P+'m">'+hm+'</select></label>'+
+   '<label class="f">날짜<select class="in" id="'+P+'d"></select></label></div>'+
+   '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px"><label class="chk"><input type="checkbox" id="'+P+'in" checked> 출근 기록</label><label class="chk"><input type="checkbox" id="'+P+'out" checked> 퇴근 기록</label></div>'+
+   '<div class="dstate" id="'+P+'sum" style="color:var(--fg)"></div><div class="err" id="'+P+'err" role="alert"></div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn danger" id="'+P+'go" type="button">선택한 기록 지우기</button>'+(persist?'':'<button class="btn ghost" id="'+P+'cancel" type="button">취소</button>')+'</div>';
+  var $y=$(P+'y'),$m=$(P+'m'),$d=$(P+'d');$y.value=y;$m.value=m;
+  function days(keep){var all=(+$m.value===0),n=all?0:dim(+$y.value,+$m.value),h='<option value="0">전체 날짜</option>';
+    for(var k=1;k<=n;k++)h+='<option value="'+k+'">'+k+'일</option>';$d.innerHTML=h;$d.value=keep&&+keep<=n?keep:0;$d.disabled=all;$y.disabled=all}
+  function sum(){var all=+$m.value===0,t=all?'모든 연도·월·날짜':($y.value+'년 '+$m.value+'월 '+(+$d.value?$d.value+'일':'전체 날짜')),w=[];
+    if($(P+'in').checked)w.push('출근');if($(P+'out').checked)w.push('퇴근');
+    var who=$(P+'p').value;$(P+'sum').textContent=w.length?(who?who+'님':'모든 사람')+'의 '+t+' '+w.join('·')+' 기록을 지웁니다.':'지울 기록 종류(출근·퇴근)를 하나 이상 고르세요.'}
+  days(d);sum();
+  $y.onchange=$m.onchange=function(){days(0);sum()};$d.onchange=sum;$(P+'p').onchange=sum;$(P+'in').onchange=$(P+'out').onchange=sum;
+  if(!persist)$(P+'cancel').onclick=function(){box.hidden=true};
+  $(P+'go').onclick=async function(){var di=$(P+'in').checked,dout=$(P+'out').checked;
+    if(!di&&!dout){$(P+'err').textContent='출근 기록이나 퇴근 기록을 하나 이상 고르세요.';return}
+    var target=$(P+'sum').textContent.replace(' 기록을 지웁니다.','');
+    var r=await wipeSel(+$y.value,+$m.value,+$d.value,di,dout,$(P+'p').value);if(!persist)box.hidden=true;
+    await after(r.ok?(r.cleared?r.cleared+'건을 지웠습니다. ('+target+')':'선택한 조건에 지울 기록이 없습니다.'):'이 브라우저의 기록은 지웠지만 서버 기록은 지우지 못했습니다. 편집 권한을 확인하세요.')};
+  box.hidden=false}
+async function deleteName(name){var keys=await listAllKeys(),cleared=0,ok=true;
+  for(var i=0;i<keys.length;i++){var yy=+keys[i].slice(0,4),mm=+keys[i].slice(5),st=await loadMonth(yy,mm);
+    if(st[name]){cleared+=Object.keys(st[name]).filter(function(d){var q=st[name][d];return q.in||q.out||q.sigIn||q.sigOut||q.sig}).length;
+      delete st[name];if(!(await saveMonth(yy,mm)))ok=false}}
+  var ix=S.people.findIndex(function(p){return p.name===name});if(ix>=0)S.people.splice(ix,1);
+  if(!S.people.length)S.people=[{name:'',in:'09:00',out:'18:00'}];
+  await saveSetup();return {ok:ok,cleared:cleared,empty:!S.people.some(function(p){return p.name.trim()})}}
+function openDelName(){var box=$('delbox'),h='';
+  S.people.forEach(function(p){if(p.name.trim())h+='<option value="'+esc(p.name)+'">'+esc(p.name)+'</option>'});
+  if(!h){$('atoast').textContent='삭제할 이름이 없습니다.';return}
+  box.innerHTML='<b>이름과 기록 삭제</b><p class="hint" style="margin:6px 0 10px">고른 이름과 그 사람의 모든 출근·퇴근 기록(서명 포함)을 모든 달에서 지웁니다. 되돌릴 수 없습니다. 필요하면 먼저 엑셀로 저장해 두세요.</p>'+
+   '<label class="f" style="max-width:260px;margin-bottom:10px">삭제할 이름<select class="in" id="delname">'+h+'</select></label>'+
+   '<div class="dstate" id="delsum" style="color:var(--fg)"></div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn danger" id="delgo" type="button">이름과 기록 삭제</button><button class="btn ghost" id="delcancel" type="button">취소</button></div>';
+  function sum(){$('delsum').textContent=$('delname').value+'님의 이름과 모든 출근·퇴근 기록을 삭제합니다.'}
+  sum();$('delname').onchange=sum;$('delcancel').onclick=function(){box.hidden=true};
+  $('delgo').onclick=async function(){var nm=$('delname').value,r=await deleteName(nm);box.hidden=true;
+    var msg=r.ok?nm+'님의 이름과 기록 '+r.cleared+'건을 삭제했습니다.':nm+'님을 이 브라우저에서는 삭제했지만 서버 기록은 지우지 못했습니다. 편집 권한을 확인하세요.';
+    $('atoast').textContent=msg;buildAdminReset();await adminRender()};
+  box.hidden=false}
+$('adel').onclick=function(){$('atoast').textContent='';openDelName()};
+function buildAdminReset(){openReset('resetbox',+$('ay').value,+$('am').value,0,async function(msg){$('atoast').textContent=msg;await adminRender()},true)}
+$('dguide').onclick=function(){show('s5')};
+$('dreset').onclick=function(){$('dtoast').textContent='';openReset('r3box',D.y,D.m,D.d,async function(msg){await dailyRefresh(false);$('dtoast').textContent=msg})};
+
+/* 통계 */
+function calc(){
+  var n=dim(S.year,S.month);
+  var wk=0;for(var d=S.d1;d<=S.d2;d++){var w=new Date(S.year,S.month-1,d).getDay();if(w!==0&&w!==6)wk++}
+  var out=S.people.map(function(p,i){
+    var o={name:p.name,days:0,tot:0,ins:[],outs:[],late:0,early:0,over:0,abs:0,partial:0,wkWorked:0,max:0,min:1e9,perDay:[]};
+    var bi=toMin(p.in),bo=toMin(p.out);
+    for(var d=S.d1;d<=S.d2;d++){var r=S.rec[i][d-1],a=toMin(r.in),c=toMin(r.out),w=new Date(S.year,S.month-1,d).getDay(),isW=(w!==0&&w!==6);
+      var ok=a!=null&&c!=null&&c>a;
+      if(ok){var m=Math.max(0,c-a-S.brk);o.days++;o.tot+=m;o.ins.push(a);o.outs.push(c);o.perDay[d-1]=m;
+        if(a>bi)o.late++;if(c<bo)o.early++;if(c>bo)o.over+=c-bo;if(m>o.max)o.max=m;if(m<o.min)o.min=m;if(isW)o.wkWorked++}
+      else{o.perDay[d-1]=0;if(isW){o.abs++}if((a!=null)!==(c!=null))o.partial++}}
+    o.avg=o.days?o.tot/o.days:0;
+    o.avgIn=o.ins.length?o.ins.reduce(function(x,y){return x+y},0)/o.ins.length:null;
+    o.avgOut=o.outs.length?o.outs.reduce(function(x,y){return x+y},0)/o.outs.length:null;
+    o.rate=wk?Math.round(o.wkWorked/wk*100):0;
+    if(o.min===1e9)o.min=0;return o});
+  return {n:n,wk:wk,list:out}}
+
+function bars(items,color,unit){
+  var W=420,H=200,L=34,B=34,T=14,max=Math.max.apply(null,items.map(function(x){return x.v}).concat([1]));
+  var step=max<=10?2:max<=40?10:max<=100?20:Math.pow(10,Math.floor(Math.log10(max)));
+  var top=Math.ceil(max/step)*step,pw=W-L-8,ph=H-T-B,bw=Math.min(40,pw/items.length*.6),s='';
+  for(var v=0;v<=top;v+=step){var y=T+ph-ph*v/top;s+='<line x1="'+L+'" x2="'+(W-8)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line2)"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end">'+v+'</text>'}
+  items.forEach(function(it,k){var cx=L+pw*(k+.5)/items.length,h=ph*it.v/top;
+    s+='<rect x="'+(cx-bw/2)+'" y="'+(T+ph-h)+'" width="'+bw+'" height="'+h+'" fill="'+color+'"/>';
+    if(items.length<=12)s+='<text x="'+cx+'" y="'+(T+ph-h-4)+'" text-anchor="middle">'+it.v+'</text>';
+    if(items.length<=12||it.lab%5===0||it.lab===1)s+='<text x="'+cx+'" y="'+(H-B+16)+'" text-anchor="middle">'+esc(it.lab)+'</text>'});
+  s+='<line x1="'+L+'" x2="'+(W-8)+'" y1="'+(T+ph)+'" y2="'+(T+ph)+'" stroke="var(--line)"/>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+unit+' 막대그래프">'+s+'</svg>'}
+
+function renderStat(){
+  var c=calc(),L=c.list,tot=0,days=0,ab=0,lt=0;
+  L.forEach(function(o){tot+=o.tot;days+=o.days;ab+=o.abs;lt+=o.late});
+  var h='<div class="cards">'+
+   '<div class="card"><b>'+c.wk+'일</b><span>평일 수 (토·일 제외)</span></div>'+
+   '<div class="card"><b>'+days+'일</b><span>전체 출근 일수 합계</span></div>'+
+   '<div class="card"><b>'+hrs(tot)+'시간</b><span>전체 근무시간 합계</span></div>'+
+   '<div class="card"><b>'+lt+'회</b><span>지각 합계</span></div>'+
+   '<div class="card"><b>'+ab+'일</b><span>평일 결근 합계</span></div></div>';
+  h+='<div class="stat"><table style="width:100%"><thead><tr><th>성명</th><th>출근일수</th><th>평일 출근율</th><th>총 근무시간</th><th>일평균</th><th>최장</th><th>최단</th><th>평균 출근</th><th>평균 퇴근</th><th>지각</th><th>조퇴</th><th>초과근무</th><th>평일 결근</th></tr></thead><tbody>';
+  L.forEach(function(o){h+='<tr><td>'+esc(o.name)+'</td><td>'+o.days+'일</td><td>'+o.rate+'%</td><td>'+hrs(o.tot)+'h</td><td>'+hrs(o.avg)+'h</td><td>'+hrs(o.max)+'h</td><td>'+hrs(o.min)+'h</td><td>'+fmt(o.avgIn)+'</td><td>'+fmt(o.avgOut)+'</td>'+
+    '<td class="'+(o.late?'late':'')+'">'+o.late+'회</td><td class="'+(o.early?'late':'')+'">'+o.early+'회</td><td>'+hrs(o.over)+'h</td><td class="'+(o.abs?'abs':'')+'">'+o.abs+'일</td></tr>'});
+  h+='</tbody></table></div>';
+  h+='<p class="hint">근무시간은 퇴근−출근에서 휴게 '+S.brk+'분을 뺀 값입니다. 지각·조퇴·초과근무는 기준 시간(출근 09:00, 퇴근 18:00)과 비교해서 셉니다.</p>';
+  var dayTot=[];for(var d=S.d1-1;d<S.d2;d++){var s=0;L.forEach(function(o){s+=o.perDay[d]||0});dayTot.push({lab:d+1,v:+hrs(s)})}
+  h+='<div class="charts"><div class="chart"><h3>사람별 총 근무시간 (시간)</h3>'+bars(L.map(function(o){return {lab:o.name,v:+hrs(o.tot)}}),'var(--bar)','사람별 총 근무시간')+'</div>'+
+     '<div class="chart"><h3>날짜별 전체 근무시간 합계 (시간)</h3>'+bars(dayTot,'var(--bar2)','날짜별 근무시간')+'</div></div>';
+  $('v-stat').innerHTML=h}
+
+function tab(k){S.kind=k==='out'?'out':'in';var st=k==='stat';$('v-sheet').hidden=st;$('v-stat').hidden=!st;
+  $('t-sheet').setAttribute('aria-selected',k==='in');$('t-out').setAttribute('aria-selected',k==='out');$('t-stat').setAttribute('aria-selected',st);
+  $('title').textContent=S.base+(st?' 통계':k==='out'?' 퇴근부':' 출근부');
+  if(!st){renderSheet();$('shint').textContent='시간 칸을 직접 고칠 수 있고, 서명 칸을 누르면 서명 패드가 열립니다. 칸을 비우면 결근·휴무로 계산되고 통계가 바로 바뀝니다.'}}
+$('t-sheet').onclick=function(){tab('in')};$('t-out').onclick=function(){tab('out')};$('t-stat').onclick=function(){tab('stat')};
+
+/* 인쇄용 파일: 이 화면에서는 인쇄창을 열 수 없어, 열면 바로 인쇄창이 뜨는 파일을 저장한다 */
+function printHtml(){
+  var P=S.people.length,secs='';
+  ['in','out'].forEach(function(kind,ki){var lab=kind==='in'?'출근':'퇴근',sk=kind==='in'?'sigIn':'sigOut',body='';
+    for(var b=S.d1-1;b<S.d2;b+=10){
+      body+='<table><thead><tr><th>성명</th><th>일자</th><th>요일</th><th>'+lab+'시간</th><th>서명</th></tr></thead><tbody>';
+      for(var d=b+1;d<=Math.min(b+10,S.d2);d++){var w=new Date(S.year,S.month-1,d).getDay();
+        for(var i=0;i<P;i++){var rc=S.rec[i][d-1];
+          body+='<tr class="'+(i===0?'ds ':'')+((w===0||w===6)?'we':'')+'"><td>'+esc(S.people[i].name)+'</td>'+
+            (i===0?'<td rowspan="'+P+'">'+S.month+'/'+d+'</td><td rowspan="'+P+'">'+DOW[w]+'</td>':'')+
+            '<td>'+rc[kind]+'</td><td class="sg">'+(rc[sk]?'<img src="'+rc[sk]+'" style="height:22px;display:block;margin:0 auto">':'')+'</td></tr>'}}
+      body+='</tbody></table>'}
+    secs+='<section'+(ki?' style="page-break-before:always"':'')+'><h1>'+esc(S.base)+' '+lab+'부</h1><div class="wrap">'+body+'</div></section>'});
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>'+esc(S.base)+' 출근부·퇴근부</title><style>'+
+   '@page{size:A4 landscape;margin:10mm}body{font-family:"Malgun Gothic","Noto Sans KR",sans-serif;color:#000;margin:0;padding:12px}'+
+   'h1{text-align:center;font-size:22px;margin:0 0 10px}.bar{text-align:center;margin-bottom:10px}'+
+   '.wrap{display:flex;gap:8px;align-items:flex-start;justify-content:center}table{border-collapse:collapse;font-size:11px;flex:1}'+
+   'th,td{border:1px solid #000;padding:2px 3px;text-align:center;height:17px}th{background:#e9e9e9}tr.ds td{border-top:2px solid #000}tr.we td{background:#f0f0f0}td.sg{min-width:70px}'+
+   '@media print{.bar{display:none}}</style></head><body><div class="bar"><button onclick="window.print()" style="padding:8px 20px;font-size:14px">인쇄</button></div>'+
+   secs+'<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},300)})<\/script></body></html>'}
+$('print').onclick=async function(){var t=$('toast');t.textContent='';
+  try{var dl=await claude.use('downloads');if(!dl){t.textContent='이 화면에서는 파일 저장을 쓸 수 없습니다.';return}
+    await dl.save({filename:'광산빌딩_'+S.year+'년'+S.month+'월_출근부_인쇄용.html',data:printHtml()});
+    t.textContent='저장한 파일을 열면 인쇄창이 바로 나옵니다.'}
+  catch(e){t.textContent=(e&&e.code==='declined')?'저장을 취소했습니다.':'파일을 저장하지 못했습니다.'}};
+
+/* 엑셀 저장 */
+$('xlsx').onclick=async function(){
+  var t=$('toast');t.textContent='';
+  try{
+    var dl=await claude.use('downloads');
+    if(!dl||!window.XLSX){t.textContent='이 화면에서는 파일 저장을 쓸 수 없습니다.';return}
+    var n=dim(S.year,S.month),rows=[['성명','일자','요일','출근시간','퇴근시간','근무시간(h)','서명']];
+    for(var d=S.d1;d<=S.d2;d++){var w=new Date(S.year,S.month-1,d).getDay();
+      S.people.forEach(function(p,i){var r=S.rec[i][d-1],a=toMin(r.in),c=toMin(r.out),ok=a!=null&&c!=null&&c>a;
+        rows.push([p.name,S.year+'-'+String(S.month).padStart(2,'0')+'-'+String(d).padStart(2,'0'),DOW[w],r.in,r.out,ok?+hrs(Math.max(0,c-a-S.brk)):'',''])})}
+    var c=calc(),st=[['성명','출근일수','평일 출근율(%)','총 근무시간(h)','일평균(h)','최장(h)','최단(h)','평균 출근','평균 퇴근','지각(회)','조퇴(회)','초과근무(h)','평일 결근(일)']];
+    c.list.forEach(function(o){st.push([o.name,o.days,o.rate,+hrs(o.tot),+hrs(o.avg),+hrs(o.max),+hrs(o.min),fmt(o.avgIn),fmt(o.avgOut),o.late,o.early,+hrs(o.over),o.abs])});
+    var wb=XLSX.utils.book_new(),a1=XLSX.utils.aoa_to_sheet(rows),a2=XLSX.utils.aoa_to_sheet(st);
+    a1['!cols']=[{wch:10},{wch:12},{wch:6},{wch:10},{wch:10},{wch:12},{wch:10}];a2['!cols']=st[0].map(function(){return {wch:14}});
+    XLSX.utils.book_append_sheet(wb,a1,'출근부');XLSX.utils.book_append_sheet(wb,a2,'통계');
+    var buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    await dl.save({filename:'광산빌딩_'+S.year+'년'+S.month+'월_출근부.xlsx',data:buf});
+    t.textContent='저장 요청을 보냈습니다.';
+  }catch(e){t.textContent=(e&&e.code==='declined')?'저장을 취소했습니다.':'파일을 저장하지 못했습니다.'}
+};
+})();
+</script>
+
+</body></html>
